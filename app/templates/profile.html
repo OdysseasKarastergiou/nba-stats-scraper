@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Profile</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <h1>NBA Stats Profile</h1>
+      
+      <div class="user-auth">
+        <span class="welcome-message">Welcome, {{ current_user.username }}!</span>
+        <a href="{{ url_for('main.index') }}" class="btn">Home</a>
+        <a href="{{ url_for('main.logout') }}" class="btn">Logout</a>
+      </div>
+    </div>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-messages">
+          {% for category, message in messages %}
+            <div class="flash-message {{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+  </header>
+  
+  <div class="profile-container">
+    <h2>User Profile</h2>
+    
+    <div class="profile-section">
+      <h3>Account Information</h3>
+      <table class="profile-table">
+        <tr>
+          <th>Username:</th>
+          <td>{{ current_user.username }}</td>
+        </tr>
+        <tr>
+          <th>Email:</th>
+          <td>{{ current_user.email }}</td>
+        </tr>
+        <tr>
+          <th>Account Created:</th>
+          <td>{{ current_user.created_at.strftime('%B %d, %Y') }}</td>
+        </tr>
+        <tr>
+          <th>Last Login:</th>
+          <td>{{ current_user.last_login.strftime('%B %d, %Y at %H:%M') if current_user.last_login else 'Never' }}</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</body>
+</html> 

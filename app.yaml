@@ -1,0 +1,11 @@
+runtime: python39
+
+instance_class: F2
+
+env_variables:
+  FLASK_APP: run.py
+  FLASK_ENV: production
+
+handlers:
+- url: /.*
+  script: auto 

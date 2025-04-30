@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>NBA 2025 Stats Scraper</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Google Tag Manager -->
+   <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+   new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+   j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+   'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+   })(window,document,'script','dataLayer','GTM-N5864HV8');</script>
+   <!-- End Google Tag Manager -->
+</head>
+<body>
+    <!-- Google Tag Manager (noscript) -->
+     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-N5864HV8"
+        height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+  
+  <header>
+    <div class="header-content">
+      <h1>NBA 2025 Stats Scraper</h1>
+      
+      <div class="user-auth">
+        {% if current_user.is_authenticated %}
+          <span class="welcome-message">Welcome, {{ current_user.username }}!</span>
+          <a href="{{ url_for('main.profile') }}" class="btn">Profile</a>
+          <a href="{{ url_for('main.logout') }}" class="btn">Logout</a>
+        {% else %}
+          <a href="{{ url_for('main.dashboard') }}" class="btn">Login / Register</a>
+        {% endif %}
+      </div>
+    </div>
+    
+    <div class="analytics-stats">
+      <div class="stat-box">
+        <div class="stat-label">User Interactions</div>
+        <div class="stat-value" id="user-interactions">0</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Page Views</div>
+        <div class="stat-value" id="page-views">0</div>
+      </div>
+    </div>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-messages">
+          {% for category, message in messages %}
+            <div class="flash-message {{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+  </header>
+  
+  <div class="content-wrapper">
+    <div class="tables-wrapper">
+      <div class="table-container">
+        <h2>Points Leaders</h2>
+        <table border="1">
+          <thead>
+            <tr>
+              {% for key in points_leaders[0].keys() %}
+                <th>{{ key }}</th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for player in points_leaders %}
+              <tr>
+                {% for val in player.values() %}
+                  <td>{{ val }}</td>
+                {% endfor %}
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="table-container">
+        <h2>3PT Leaders</h2>
+        <table border="1">
+          <thead>
+            <tr>
+              {% for key in three_pt_leaders[0].keys() %}
+                <th>{{ key }}</th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for player in three_pt_leaders %}
+              <tr>
+                {% for val in player.values() %}
+                  <td>{{ val }}</td>
+                {% endfor %}
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    
+    <div class="chart-container">
+      <h2>Points vs Field Goal %</h2>
+      <canvas id="scatterChart"></canvas>
+    </div>
+  </div>
+
+  <script>
+    // The chart data is already in JSON format from the backend
+    const chartData = {{ chart_data|safe }};
+    
+    // Create the scatter plot
+    const ctx = document.getElementById('scatterChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'scatter',
+      data: {
+        datasets: [{
+          label: 'Points vs FG%',
+          data: chartData.map(function(player) {
+            return {
+              x: player.pts,
+              y: player.fg_pct,
+              player: player.name
+            };
+          }),
+          backgroundColor: 'rgba(75, 192, 192, 0.6)',
+          pointRadius: 6,
+          pointHoverRadius: 8
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                var point = context.raw;
+                return point.player + ': ' + point.x + ' PTS, ' + point.y.toFixed(3) + ' FG%';
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: 'Points Per Game'
+            }
+          },
+          y: {
+            title: {
+              display: true,
+              text: 'Field Goal %'
+            }
+          }
+        }
+      }
+    });
+
+    // Google Analytics Stats Display
+    document.addEventListener('DOMContentLoaded', function() {
+      // Get stored values from localStorage or initialize to 0
+      let pageViews = parseInt(localStorage.getItem('pageViews') || 0);
+      let userInteractions = parseInt(localStorage.getItem('userInteractions') || 0);
+      
+      // Increment page views on load
+      pageViews++;
+      
+      // Save back to localStorage
+      localStorage.setItem('pageViews', pageViews);
+      
+      // Function to update the display
+      function updateStats() {
+        document.getElementById('page-views').textContent = pageViews;
+        document.getElementById('user-interactions').textContent = userInteractions;
+      }
+      
+      // Listen for GTM events
+      window.dataLayer = window.dataLayer || [];
+      
+      // Update display initially
+      updateStats();
+      
+      // Listen for user interactions (clicks)
+      document.addEventListener('click', function() {
+        userInteractions++;
+        localStorage.setItem('userInteractions', userInteractions);
+        updateStats();
+        
+        // Push event to dataLayer for GTM
+        window.dataLayer.push({
+          'event': 'userInteraction',
+          'interactionType': 'click'
+        });
+      });
+      
+      // Check for existing GTM data if available
+      try {
+        if (typeof ga !== 'undefined') {
+          ga(function(tracker) {
+            // Try to get pageview data from GA
+            var pageviewCount = tracker.get('pageviews');
+            if (pageviewCount) {
+              pageViews = pageviewCount;
+              localStorage.setItem('pageViews', pageViews);
+              updateStats();
+            }
+          });
+        }
+      } catch (e) {
+        console.log('Google Analytics data not available');
+      }
+    });
+  </script>
+</body>
+</html>
