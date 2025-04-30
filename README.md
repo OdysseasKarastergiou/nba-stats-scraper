@@ -27,3 +27,7 @@ A web application built with Flask.
    ```
    docker run -p 8080:8080 flask-web-app
    ```
+
+### Online Web App
+
+The project was also uploaded via google cloud console on this url : https://flaskimg-308909543252.europe-west8.run.app/
